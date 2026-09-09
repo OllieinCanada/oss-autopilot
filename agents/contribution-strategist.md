@@ -1,24 +1,25 @@
 ---
 name: contribution-strategist
-description: Use this agent when analyzing contribution patterns, seeking strategic advice on open source career, or wanting to improve contribution effectiveness.
+description: |
+  Use this agent when analyzing contribution patterns, seeking strategic advice on open source career, or wanting to improve contribution effectiveness.
 
-<example>
-Context: User wants to understand their contribution patterns.
-user: "How am I doing with my open source contributions?"
-assistant: "I'll use the contribution-strategist agent to analyze your contribution patterns and provide insights."
-<commentary>
-User wants a strategic overview of their contributions.
-</commentary>
-</example>
+  <example>
+  Context: User wants to understand their contribution patterns.
+  user: "How am I doing with my open source contributions?"
+  assistant: "I'll use the contribution-strategist agent to analyze your contribution patterns and provide insights."
+  <commentary>
+  User wants a strategic overview of their contributions.
+  </commentary>
+  </example>
 
-<example>
-Context: User is looking to grow their OSS presence.
-user: "What repos should I focus on to build my reputation?"
-assistant: "Let me use the contribution-strategist agent to analyze your skills and recommend strategic repos."
-<commentary>
-User wants strategic guidance on where to contribute.
-</commentary>
-</example>
+  <example>
+  Context: User is looking to grow their OSS presence.
+  user: "What repos should I focus on to build my reputation?"
+  assistant: "Let me use the contribution-strategist agent to analyze your skills and recommend strategic repos."
+  <commentary>
+  User wants strategic guidance on where to contribute.
+  </commentary>
+  </example>
 
 purpose: Strategic OSS advice
 model: haiku
