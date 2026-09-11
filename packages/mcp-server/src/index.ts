@@ -203,7 +203,13 @@ export const ENTRY_SUFFIXES = [
   '/mcp-server.bundle.cjs',
   '/oss-autopilot-mcp',
 ];
-const isMain = process.argv[1] && ENTRY_SUFFIXES.some((s) => process.argv[1].endsWith(s));
+
+export function isEntryPoint(entryPath: string | undefined): boolean {
+  const normalizedPath = entryPath?.replaceAll('\\', '/');
+  return Boolean(normalizedPath && ENTRY_SUFFIXES.some((suffix) => normalizedPath.endsWith(suffix)));
+}
+
+const isMain = isEntryPoint(process.argv[1]);
 
 if (isMain) {
   main().catch((err) => {
