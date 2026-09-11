@@ -1,24 +1,25 @@
 ---
 name: pr-compliance-checker
-description: Use this agent to validate PRs against opensource.guide best practices. Call this after creating a new PR, before submitting for review, or when reviewing your own contribution quality.
+description: |
+  Use this agent to validate PRs against opensource.guide best practices. Call this after creating a new PR, before submitting for review, or when reviewing your own contribution quality.
 
-<example>
-Context: User just created a new PR and wants to verify it meets standards.
-user: "I just opened a PR, can you check if it's good?"
-assistant: "I'll use the pr-compliance-checker agent to validate your PR against opensource.guide best practices."
-<commentary>
-User created a PR and wants quality validation before maintainer review.
-</commentary>
-</example>
+  <example>
+  Context: User just created a new PR and wants to verify it meets standards.
+  user: "I just opened a PR, can you check if it's good?"
+  assistant: "I'll use the pr-compliance-checker agent to validate your PR against opensource.guide best practices."
+  <commentary>
+  User created a PR and wants quality validation before maintainer review.
+  </commentary>
+  </example>
 
-<example>
-Context: User wants to improve their contribution before submitting.
-user: "Check this PR for me: github.com/org/repo/pull/123"
-assistant: "Let me use the pr-compliance-checker agent to review that PR for compliance with open source best practices."
-<commentary>
-User explicitly wants a PR compliance check.
-</commentary>
-</example>
+  <example>
+  Context: User wants to improve their contribution before submitting.
+  user: "Check this PR for me: github.com/org/repo/pull/123"
+  assistant: "Let me use the pr-compliance-checker agent to review that PR for compliance with open source best practices."
+  <commentary>
+  User explicitly wants a PR compliance check.
+  </commentary>
+  </example>
 
 purpose: Validate PRs against opensource.guide
 model: haiku
