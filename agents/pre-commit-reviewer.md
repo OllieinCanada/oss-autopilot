@@ -1,24 +1,25 @@
 ---
 name: pre-commit-reviewer
-description: Use this agent to review code changes before committing and pushing to a PR. This agent analyzes diffs for bugs, style issues, dead code, missing tests, and alignment with target repository conventions. Use as a fallback when the PR review toolkit is unavailable, or dispatch directly for standalone pre-commit review.
+description: |
+  Use this agent to review code changes before committing and pushing to a PR. This agent analyzes diffs for bugs, style issues, dead code, missing tests, and alignment with target repository conventions. Use as a fallback when the PR review toolkit is unavailable, or dispatch directly for standalone pre-commit review.
 
-<example>
-Context: The user has made code changes to fix CI or address review feedback and needs a quality check before pushing.
-user: "Review my changes before I push"
-assistant: "I'll use the pre-commit-reviewer agent to analyze your changes for quality issues before committing."
-<commentary>
-The user has pending code changes and wants a quality gate before pushing to their PR.
-</commentary>
-</example>
+  <example>
+  Context: The user has made code changes to fix CI or address review feedback and needs a quality check before pushing.
+  user: "Review my changes before I push"
+  assistant: "I'll use the pre-commit-reviewer agent to analyze your changes for quality issues before committing."
+  <commentary>
+  The user has pending code changes and wants a quality gate before pushing to their PR.
+  </commentary>
+  </example>
 
-<example>
-Context: After resolving merge conflicts or rebasing, the user wants to verify the resolution is correct.
-user: "I resolved the conflicts, can you check my changes look right?"
-assistant: "I'll use the pre-commit-reviewer agent to verify your conflict resolution and check for issues."
-<commentary>
-Post-conflict resolution is a critical moment where bugs can be introduced. Review before pushing.
-</commentary>
-</example>
+  <example>
+  Context: After resolving merge conflicts or rebasing, the user wants to verify the resolution is correct.
+  user: "I resolved the conflicts, can you check my changes look right?"
+  assistant: "I'll use the pre-commit-reviewer agent to verify your conflict resolution and check for issues."
+  <commentary>
+  Post-conflict resolution is a critical moment where bugs can be introduced. Review before pushing.
+  </commentary>
+  </example>
 
 purpose: Review code changes before committing (fallback for PR review toolkit)
 model: sonnet
