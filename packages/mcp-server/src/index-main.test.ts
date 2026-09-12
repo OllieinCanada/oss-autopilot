@@ -97,7 +97,7 @@ vi.mock('./auth.js', () => ({
   ),
 }));
 
-import { main, ENTRY_SUFFIXES } from './index.js';
+import { main, ENTRY_SUFFIXES, isEntryPoint } from './index.js';
 
 // Sentinel error for mocked process.exit
 class ExitError extends Error {
@@ -355,4 +355,26 @@ describe('ENTRY_SUFFIXES', () => {
     expect(ENTRY_SUFFIXES).toContain('/oss-autopilot-mcp');
     expect(ENTRY_SUFFIXES).toHaveLength(4);
   });
+});
+
+describe('isEntryPoint', () => {
+  it.each([
+    '/workspace/mcp-server/src/index.ts',
+    '/workspace/mcp-server/dist/index.js',
+    '/workspace/node_modules/@oss-autopilot/mcp/dist/mcp-server.bundle.cjs',
+    '/usr/local/bin/oss-autopilot-mcp',
+    String.raw`C:\workspace\mcp-server\src\index.ts`,
+    String.raw`C:\workspace\mcp-server\dist\index.js`,
+    String.raw`C:\workspace\node_modules\@oss-autopilot\mcp\dist\mcp-server.bundle.cjs`,
+    String.raw`C:\Users\developer\AppData\Roaming\npm\oss-autopilot-mcp`,
+  ])('detects a supported entry path: %s', (entryPath) => {
+    expect(isEntryPoint(entryPath)).toBe(true);
+  });
+
+  it.each([undefined, '', '/workspace/mcp-server/src/server.ts', String.raw`C:\workspace\src\server.js`])(
+    'rejects a non-entry path: %s',
+    (entryPath) => {
+      expect(isEntryPoint(entryPath)).toBe(false);
+    },
+  );
 });
