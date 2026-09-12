@@ -1,24 +1,25 @@
 ---
 name: pr-health-checker
-description: Use this agent when checking PR status for CI failures, merge conflicts, stale reviews, rebase status, or other health issues. This agent diagnoses problems, performs routine maintenance (rebase), and suggests fixes for code issues.
+description: |
+  Use this agent when checking PR status for CI failures, merge conflicts, stale reviews, rebase status, or other health issues. This agent diagnoses problems, performs routine maintenance (rebase), and suggests fixes for code issues.
 
-<example>
-Context: The /oss daily check shows a PR with failing CI.
-user: "Why is my PR failing CI?"
-assistant: "I'll use the pr-health-checker agent to diagnose the CI failures."
-<commentary>
-User is asking about CI failures, which is a core health check concern.
-</commentary>
-</example>
+  <example>
+  Context: The /oss daily check shows a PR with failing CI.
+  user: "Why is my PR failing CI?"
+  assistant: "I'll use the pr-health-checker agent to diagnose the CI failures."
+  <commentary>
+  User is asking about CI failures, which is a core health check concern.
+  </commentary>
+  </example>
 
-<example>
-Context: User wants to check if PRs are up to date with upstream.
-user: "Check all my PRs and rebase any that are behind"
-assistant: "I'll use the pr-health-checker agent to check upstream status and rebase where needed."
-<commentary>
-Rebase checking and execution is a core health check responsibility.
-</commentary>
-</example>
+  <example>
+  Context: User wants to check if PRs are up to date with upstream.
+  user: "Check all my PRs and rebase any that are behind"
+  assistant: "I'll use the pr-health-checker agent to check upstream status and rebase where needed."
+  <commentary>
+  Rebase checking and execution is a core health check responsibility.
+  </commentary>
+  </example>
 
 purpose: Diagnose CI failures, merge conflicts, rebase status
 model: sonnet
