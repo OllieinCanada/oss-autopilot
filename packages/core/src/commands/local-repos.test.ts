@@ -292,7 +292,31 @@ describe('scanForRepos directory traversal', () => {
     expect(mockReaddirSync).not.toHaveBeenCalledWith(tooDeepRepo, expect.anything());
   });
 
-  it('should not follow directory symlinks', () => {
+  it('should find a .git directory at exactly the maximum depth', () => {
+    const root = path.join('scan', 'root');
+    const level1 = path.join(root, 'one');
+    const level2 = path.join(level1, 'two');
+    const repo = path.join(level2, 'repo');
+    mockDirectoryTree({
+      [root]: [directoryEntry('one')],
+      [level1]: [directoryEntry('two')],
+      [level2]: [directoryEntry('repo')],
+      [repo]: [directoryEntry('.git')],
+    });
+    mockExecFileSync.mockImplementation((command, parameters) => {
+      const parameterArray = parameters as string[];
+      if (command === 'git' && parameterArray.includes('get-url')) {
+        return 'https://github.com/owner/deep.git\n';
+      }
+      if (command === 'git' && parameterArray.includes('--show-current')) return 'main\n';
+      return '';
+    });
+
+    const result = scanForRepos([root]);
+    expect(result['owner/deep']?.path).toBe(repo);
+  });
+
+  it('should skip non-directory entries (files and symlinks, which readdirSync does not follow)', () => {
     const root = path.join('scan', 'root');
     mockDirectoryTree({
       [root]: [directoryEntry('linked-repo', false)],
@@ -301,6 +325,29 @@ describe('scanForRepos directory traversal', () => {
     const result = scanForRepos([root]);
     expect(result).toEqual({});
     expect(mockReaddirSync).toHaveBeenCalledTimes(1);
+  });
+
+  it('should stop with partial results once the scan deadline passes', () => {
+    vi.useFakeTimers();
+    try {
+      const root = path.join('scan', 'root');
+      const slow = path.join(root, 'slow');
+      const never = path.join(root, 'never');
+      mockReaddirSync.mockImplementation(((directory: fs.PathLike) => {
+        if (String(directory) === root) return [directoryEntry('slow'), directoryEntry('never')];
+        // Reading the first child takes longer than the whole budget.
+        vi.advanceTimersByTime(31_000);
+        return [];
+      }) as never);
+
+      const result = scanForRepos([root]);
+      expect(result).toEqual({});
+      expect(mockReaddirSync).toHaveBeenCalledTimes(2);
+      expect(mockReaddirSync).not.toHaveBeenCalledWith(slow, expect.anything());
+      expect(mockReaddirSync).toHaveBeenCalledWith(never, expect.anything());
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

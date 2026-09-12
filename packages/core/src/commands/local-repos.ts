@@ -30,6 +30,9 @@ const DEFAULT_SCAN_PATHS = [
 
 // Maximum depth for `.git` directories, matching the previous `find -maxdepth 4` behavior.
 const MAX_GIT_DIR_DEPTH = 4;
+// Wall-clock bound per scan root, matching the previous `execFileSync` timeout. A scan root like
+// `~` can hold millions of entries within four levels; a partial result beats a hung process.
+const SCAN_TIMEOUT_MS = 30_000;
 
 interface PendingDirectory {
   directory: string;
@@ -51,10 +54,8 @@ function collectGitDirectoryEntries(
 
     if (entry.name === '.git') {
       gitDirectories.push(childPath);
-    } else {
-      if (childDepth < MAX_GIT_DIR_DEPTH) {
-        pending.push({ directory: childPath, depth: childDepth });
-      }
+    } else if (childDepth < MAX_GIT_DIR_DEPTH) {
+      pending.push({ directory: childPath, depth: childDepth });
     }
   }
 }
@@ -64,8 +65,13 @@ function collectGitDirectoryEntries(
 function findGitDirectories(scanPath: string): string[] {
   const gitDirectories: string[] = [];
   const pending = [{ directory: scanPath, depth: 0 }];
+  const deadline = Date.now() + SCAN_TIMEOUT_MS;
 
   while (pending.length > 0) {
+    if (Date.now() > deadline) {
+      debug('local-repos', `Scan of ${scanPath} exceeded ${SCAN_TIMEOUT_MS}ms; returning partial results`);
+      break;
+    }
     const { directory, depth } = pending.pop()!;
     let entries: fs.Dirent[];
 
@@ -131,7 +137,7 @@ export function scanForRepos(scanPaths: string[]): Record<string, LocalRepoInfo>
   for (const scanPath of scanPaths) {
     if (!fs.existsSync(scanPath)) continue;
 
-    // Find git repos up to 3 directory levels beneath the scan root.
+    // Find `.git` directories up to 4 levels beneath the scan root (repos up to 3 levels deep).
     const gitDirectories = findGitDirectories(scanPath);
 
     for (const gitDirectory of gitDirectories) {
