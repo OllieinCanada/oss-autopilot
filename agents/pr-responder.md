@@ -1,24 +1,25 @@
 ---
 name: pr-responder
-description: Use this agent when a PR has unread comments from maintainers and the user wants to draft a response. This agent analyzes maintainer feedback, reads relevant code context, and drafts professional responses.
+description: |
+  Use this agent when a PR has unread comments from maintainers and the user wants to draft a response. This agent analyzes maintainer feedback, reads relevant code context, and drafts professional responses.
 
-<example>
-Context: The user ran /oss and there's a PR with unread comments from a maintainer.
-user: "Help me respond to the comments on my React PR"
-assistant: "I'll use the pr-responder agent to analyze the maintainer's feedback and draft a response."
-<commentary>
-The user explicitly wants help responding to PR comments, which is this agent's core purpose.
-</commentary>
-</example>
+  <example>
+  Context: The user ran /oss and there's a PR with unread comments from a maintainer.
+  user: "Help me respond to the comments on my React PR"
+  assistant: "I'll use the pr-responder agent to analyze the maintainer's feedback and draft a response."
+  <commentary>
+  The user explicitly wants help responding to PR comments, which is this agent's core purpose.
+  </commentary>
+  </example>
 
-<example>
-Context: User is looking at PR comments.
-user: "The maintainer asked me to refactor this function, how should I respond?"
-assistant: "I'll use the pr-responder agent to understand the requested changes and draft a response."
-<commentary>
-User needs help understanding and responding to a specific code review comment.
-</commentary>
-</example>
+  <example>
+  Context: User is looking at PR comments.
+  user: "The maintainer asked me to refactor this function, how should I respond?"
+  assistant: "I'll use the pr-responder agent to understand the requested changes and draft a response."
+  <commentary>
+  User needs help understanding and responding to a specific code review comment.
+  </commentary>
+  </example>
 
 purpose: Draft responses to maintainer feedback
 model: sonnet

@@ -1,15 +1,16 @@
 ---
 name: overnight-preparer
-description: Use this agent only from the /oss-overnight command. It prepares a fix branch for one PR in an isolated local worktree (CI failure, merge conflict, requested changes, incomplete checklist) and reports the branch. It never pushes, posts, merges, or asks a question, because it runs unattended.
+description: |
+  Use this agent only from the /oss-overnight command. It prepares a fix branch for one PR in an isolated local worktree (CI failure, merge conflict, requested changes, incomplete checklist) and reports the branch. It never pushes, posts, merges, or asks a question, because it runs unattended.
 
-<example>
-Context: /oss-overnight found a PR with failing CI and dispatches one preparer per item.
-user: "OVERNIGHT PREPARE-ONLY MODE for https://github.com/owner/repo/pull/42 ([CI Failing]: CI is red)"
-assistant: "I'll diagnose the failing job in a worktree, fix it, run the suite, commit locally, and report the branch."
-<commentary>
-The command owns dispatch and recording; the agent owns exactly one PR and never touches GitHub beyond reads.
-</commentary>
-</example>
+  <example>
+  Context: /oss-overnight found a PR with failing CI and dispatches one preparer per item.
+  user: "OVERNIGHT PREPARE-ONLY MODE for https://github.com/owner/repo/pull/42 ([CI Failing]: CI is red)"
+  assistant: "I'll diagnose the failing job in a worktree, fix it, run the suite, commit locally, and report the branch."
+  <commentary>
+  The command owns dispatch and recording; the agent owns exactly one PR and never touches GitHub beyond reads.
+  </commentary>
+  </example>
 
 purpose: Prepare one fix branch locally for the overnight run, with no external side effects
 model: sonnet
