@@ -121,7 +121,15 @@ Task(pr-review-toolkit:pr-test-analyzer,
    Test directory: {test dir path}
    Changed files: {changedFiles}
 
-   Coverage: check if modified code paths have tests; identify gaps.
+   Coverage: check if modified code paths have tests; identify gaps. Report a gap
+   only when you can name the concrete, plausible regression a test would catch.
+   Adding entries to a map/list/registry, constants, icons, copy, or config is not a
+   gap. Never report 'no tests were added' on its own as a finding.
+
+   Necessity: for each new test in the diff, name the regression it guards. If you
+   cannot (it restates data, checks only that something exists or parses, or tests the
+   language/framework), flag it as Recommended: remove the test. Do not suggest
+   strengthening it.
 
    Assertion strength: for each new/modified test, ask 'if I broke the feature under
    test, would this test actually catch it?' Flag:
@@ -235,13 +243,14 @@ After consolidating findings, automatically fix and re-review until convergence.
 **Procedure:**
 
 1. **Check convergence.** If zero Critical and zero Recommended: report
-   > "Review converged on pass {reviewPass}. {minor_count} minor finding(s) noted — changes are clean."
+   > "Review converged on pass {reviewPass}. {minor_count} minor finding(s) noted, {rejected_count} rejected with reasons — changes are clean."
+   List each rejected finding and its reason under the summary so the user can overrule it.
    Proceed to the caller's decision step.
 
 2. **If Critical or Recommended exist:** report
    > "Pass {reviewPass}: {critical} Critical, {recommended} Recommended, {minor} Minor. Fixing actionable findings..."
 
-3. **Fix all Critical and Recommended findings.** Minor findings are noted but not auto-fixed.
+3. **Resolve all Critical and Recommended findings.** Minor findings are noted but not auto-fixed. Each finding is resolved one of three ways: fix it; remove the code, test, or comment the finding is about (prefer this when the artifact was added by this change and isn't needed); or, for a **Recommended** finding only, reject it with a one-line reason (e.g. "test would restate data; no regression to guard"). Critical findings are never rejected: fix them or remove the code, and if you believe one is wrong, stop the loop with status `disputed` and show it to the user. A rejected finding is recorded in a **Rejected findings** list (finding + reason) that goes in the final report, and is not re-raised in later passes. A test finding (coverage gap or weak assertion) is fixed by writing or strengthening a test only when the finding names a concrete regression that test would catch; otherwise the fix is to delete the test. Never add or grow a test just to clear a finding.
 
 4. **Increment `reviewPass`.** Re-gather the updated diff (caller's context-gather step).
 
@@ -254,12 +263,14 @@ After consolidating findings, automatically fix and re-review until convergence.
 
 **If max passes reached without convergence:**
 > "Review did not converge after 5 passes. {remaining_count} finding(s) remain — presenting for manual review."
+List any rejected findings and their reasons as well.
 
 ## After the Loop
 
 Return control to the caller with:
 - final consolidated report
-- convergence status (`converged` or `max_passes_reached`)
+- convergence status (`converged`, `max_passes_reached`, or `disputed`)
+- rejected findings with their reasons (the caller shows these at its decision step)
 - `reviewPass` count
 - `agentsWithFindings` from the final pass
 

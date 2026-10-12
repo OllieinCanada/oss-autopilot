@@ -54,7 +54,7 @@ A PR is NEVER "ready" until all of these pass:
 1. **Local lint/type check**: Run the repo's linters and type checkers
 2. **Test suite**: Run the full test suite locally
 3. **Code review**: Run review agents (pr-review-toolkit or pre-commit-reviewer)
-4. **Fix and re-run**: Fix all findings, re-run checks
+4. **Resolve and re-run**: Fix each finding, remove what it flags, or (Recommended only) reject it with a stated reason; re-run checks
 5. **Convergence**: Repeat until zero Critical/Recommended findings
 6. **Push and verify CI**: Push and confirm CI passes remotely
 7. **Only then** declare the PR ready for maintainer review
@@ -143,7 +143,7 @@ Before submitting any PR, verify:
 
 ### Conditional
 
-- [ ] **Tests Included**: If project requires tests, add them
+- [ ] **Tests Included**: Only when the change has behavior to guard (bug fix, new logic); never filler
 - [ ] **Docs Updated**: If behavior changed, update docs
 
 ### Optional

@@ -120,7 +120,7 @@ Ignore vague guidance (e.g., "be respectful") and focus on concrete, verifiable 
 
 For each extracted requirement, check whether the current changes satisfy it:
 
-- **Tests:** Are there new/updated test files in the diff? If the requirement says "ensure tests pass", run the project's test command (from `package.json` scripts, `Makefile`, or CONTRIBUTING.md instructions) and check the exit code. If no test command is discoverable, mark as "Unable to verify automatically — manual check needed."
+- **Tests:** Are there new/updated test files in the diff? A requirement like "add tests for new functionality" is met by tests that guard real behavior (see Test Coverage Requirements); for a data-only change with nothing to guard, mark it "N/A: no testable behavior" rather than a gap. If the requirement says "ensure tests pass", run the project's test command (from `package.json` scripts, `Makefile`, or CONTRIBUTING.md instructions) and check the exit code. If no test command is discoverable, mark as "Unable to verify automatically — manual check needed."
 - **Documentation:** Are doc files updated if the change is user-facing? Check `git diff --name-only` for files in `docs/`, `doc/`, or matching `*.md`.
 - **Changelog:** Is there a changelog entry? Check `git diff --name-only` for `CHANGELOG*`, `CHANGES*`, `HISTORY*` files.
 - **Code style:** Run the project's formatter/linter command if discoverable (from `package.json` scripts, `Makefile`, or CONTRIBUTING.md instructions) and check the exit code. If the command is not discoverable, mark as "Unable to verify automatically — manual check needed."
@@ -270,6 +270,9 @@ Include the test-coverage assessment from `pr-test-analyzer`.
 ### Out-of-Scope (pre-existing)
 - {list, if any Critical-severity pre-existing issues were flagged}
 
+### Rejected Findings
+- {finding — reason, for each Recommended finding rejected during the loop; omit if none}
+
 ### Test Coverage
 - {assessment from pr-test-analyzer}
 ```
@@ -403,7 +406,7 @@ Run the repo's lint and test commands. If they fail, fix and loop. **Soft limit 
 
 If review agents have not been dispatched:
 > "Hold on — running review agents before finalizing..."
-Dispatch the full review suite (see Step 3) and run the convergence loop. If findings are reported, fix and re-run until convergence. **Soft limit after 3 rounds:** report remaining findings and offer: "Proceed to final review anyway" / "Done for now".
+Dispatch the full review suite (see Step 3) and run the convergence loop. If findings are reported, resolve them (fix, remove, or reject with a reason per `dispatch-review.md`) and re-run until convergence. **Soft limit after 3 rounds:** report remaining findings and offer: "Proceed to final review anyway" / "Done for now".
 
 Only proceed to sub-step 2 after all checks pass or the user explicitly chooses to proceed.
 
@@ -669,10 +672,11 @@ Dispatch the `pr-compliance-checker` agent with the PR URL.
 
 ### Test Coverage Requirements
 
-**Include tests when the repo has test infrastructure and the change involves code (not docs-only, config-only, or trivial typo fixes).**
+**Include a test only when you can name the concrete regression it would catch.** A bug fix gets a regression test that fails on the base branch. New logic with branches or edge cases gets tests for those. Adding entries to a map/list/registry, constants, icons, copy, config, or docs gets no test, even when the repo has test infrastructure.
 
-Before submitting a PR, check if the repo has a test directory:
-- `test/`, `tests/`, `__tests__/`, `spec/`
+Never write a test to satisfy a generic checklist, boilerplate CONTRIBUTING.md wording, or an automated review finding. An explicit maintainer request or a test requirement the repo enforces (CI check, bot) still applies; if it seems to demand a filler test, raise it with the user rather than skipping it. Maintainers spot tests that restate data or only check that something exists, and they read them as AI filler. If the repo template asks about tests and none apply, say so in the PR body in one line.
+
+To find where tests live, check for `test/`, `tests/`, `__tests__/`, `spec/`, or co-located `*_test.*` / `*.test.*` files.
 
 ---
 

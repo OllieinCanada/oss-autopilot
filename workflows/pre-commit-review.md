@@ -114,7 +114,7 @@ Caller-specific inputs for this workflow:
 - `workingDir` is the local repo path.
 - `reviewPass = 1`, `agentsWithFindings = []`.
 
-The template handles the full dispatch + convergence flow. Return here when the loop exits (either converged or max passes reached) with a consolidated report, then proceed to sub-step 4b (scope discipline check when responding to maintainer feedback) and sub-step 6 (user decision point).
+The template handles the full dispatch + convergence flow. Return here when the loop exits (converged, max passes reached, or disputed) with a consolidated report, then proceed to sub-step 4b (scope discipline check when responding to maintainer feedback) and sub-step 6 (user decision point).
 
 ### 4. Consolidate Findings
 
@@ -148,13 +148,14 @@ After consolidating findings (sub-step 4), automatically fix and re-review until
 **Procedure:**
 
 1. **Check for convergence:** If the consolidated report has zero Critical and zero Recommended findings, convergence is reached. Report the pass summary:
-   > "Review converged on pass {reviewPass}. {minor_count} minor finding(s) noted — changes are clean and ready to commit."
+   > "Review converged on pass {reviewPass}. {minor_count} minor finding(s) noted, {rejected_count} rejected with reasons — changes are clean and ready to commit."
+   List each rejected finding and its reason.
    Proceed to sub-step 6 (User Decision Point) with the "clean" prompt.
 
 2. **If Critical or Recommended findings exist:** Report the pass summary:
    > "Pass {reviewPass}: {critical_count} Critical, {recommended_count} Recommended, {minor_count} Minor. Fixing actionable findings..."
 
-3. **Fix all Critical and Recommended findings.** Minor findings are noted but not auto-fixed. Apply fixes using standard editing tools.
+3. **Resolve all Critical and Recommended findings** per step 3 of the convergence loop in `dispatch-review.md`: fix, remove the artifact, or (Recommended only) reject with a one-line reason that is shown to the user. Never add or grow a test just to clear a finding. Minor findings are noted but not auto-fixed.
 
 4. **Increment `reviewPass`.** Loop back to sub-step 2 (Gather Change Context) to re-gather the updated diff after fixes.
 
@@ -167,7 +168,9 @@ After consolidating findings (sub-step 4), automatically fix and re-review until
 
 **If max passes reached without convergence:**
 > "Review did not converge after 5 passes. {remaining_count} finding(s) remain — presenting for manual review."
-Present the latest consolidated report and proceed to sub-step 6 with the "unresolved findings" prompt.
+Present the latest consolidated report, including any rejected findings with their reasons, and proceed to sub-step 6 with the "unresolved findings" prompt.
+
+**If a Critical finding is disputed** (you believe it is wrong and will neither fix it nor remove the code): stop the loop, name the disputed finding and why, and proceed to sub-step 6 with the "unresolved findings" prompt.
 
 ### 6. User Decision Point and Action
 
