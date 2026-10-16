@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.30.0](https://github.com/costajohnt/oss-autopilot/compare/core-v3.29.2...core-v3.30.0) (2026-10-16)
+
+
+### Features
+
+* add untrackedOrgs config to leave orgs out of PR tracking ([f8901c6](https://github.com/costajohnt/oss-autopilot/commit/f8901c602c3bfd4f91a046ea77f3e19709986ea8))
+
+
+### Bug Fixes
+
+* stop review gates from forcing filler tests ([#1774](https://github.com/costajohnt/oss-autopilot/issues/1774)) ([330a604](https://github.com/costajohnt/oss-autopilot/commit/330a604889caafb5472940f94952bbf17b11ec0b))
+
 ## [3.29.2](https://github.com/costajohnt/oss-autopilot/compare/core-v3.29.1...core-v3.29.2) (2026-10-10)
 
 
