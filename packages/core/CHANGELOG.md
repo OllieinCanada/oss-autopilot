@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.31.0](https://github.com/costajohnt/oss-autopilot/compare/core-v3.30.0...core-v3.31.0) (2026-10-17)
+
+
+### Features
+
+* **search:** add --full and make /oss-search run every strategy ([#1783](https://github.com/costajohnt/oss-autopilot/issues/1783)) ([d882885](https://github.com/costajohnt/oss-autopilot/commit/d882885e4d8f2768b3bbf4d4b7027f946505f006))
+
 ## [3.30.0](https://github.com/costajohnt/oss-autopilot/compare/core-v3.29.2...core-v3.30.0) (2026-10-16)
 
 
