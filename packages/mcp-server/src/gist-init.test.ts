@@ -16,7 +16,13 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 
-const { mockGetGitHubTokenAsync, mockEnsureGistPersistence, mockRunStatus, MockConfigurationError } = vi.hoisted(() => {
+const {
+  mockGetGitHubTokenAsync,
+  mockEnsureGistPersistence,
+  mockRunStatus,
+  MockConfigurationError,
+  MockGistFileSizeError,
+} = vi.hoisted(() => {
   // Stand-ins for the core error classes (the whole module is mocked, so
   // tools.ts's instanceof checks run against THESE classes).
   class MockConfigurationError extends Error {
@@ -25,11 +31,18 @@ const { mockGetGitHubTokenAsync, mockEnsureGistPersistence, mockRunStatus, MockC
       this.name = 'ConfigurationError';
     }
   }
+  class MockGistFileSizeError extends MockConfigurationError {
+    constructor(message: string) {
+      super(message);
+      this.name = 'MockGistFileSizeError';
+    }
+  }
   return {
     mockGetGitHubTokenAsync: vi.fn(),
     mockEnsureGistPersistence: vi.fn(),
     mockRunStatus: vi.fn(),
     MockConfigurationError,
+    MockGistFileSizeError,
   };
 });
 
@@ -91,6 +104,8 @@ vi.mock('@oss-autopilot/core', async (importOriginal) => ({
   getSetupKeys: () => ['username'],
   getConfigKeys: () => ['username'],
   ConfigurationError: MockConfigurationError,
+  GistFileSizeError: MockGistFileSizeError,
+  GIST_FILE_SIZE_REMEDY: 'trim repoScores and searchSeen, or run state-unlink',
   ConcurrencyError: class ConcurrencyError extends Error {},
   GistConcurrencyError: class GistConcurrencyError extends Error {},
 }));
@@ -366,6 +381,57 @@ describe('ensureGistInit retry semantics (#1368)', () => {
       expect(result.isError).toBe(true);
       expect((result.content as Array<{ text: string }>)[0].text).toContain('Gist token lacks the gist scope');
       expect(mockRunStatus).not.toHaveBeenCalled();
+    });
+
+    it('a GistFileSizeError halts init retries until a repair tool runs, and says how to fix it', async () => {
+      mockEnsureGistPersistence.mockRejectedValueOnce(new MockGistFileSizeError('Gist file state.json is too large'));
+
+      const first = await client.callTool({ name: 'status', arguments: {} });
+      const second = await client.callTool({ name: 'status', arguments: {} });
+
+      // Both calls name the cause and the fix, but only the first re-bootstrapped.
+      expect(first.isError).toBe(true);
+      expect(second.isError).toBe(true);
+      const text = (second.content as Array<{ text: string }>)[0].text;
+      expect(text).toContain('state.json is too large');
+      expect(text).toContain('trim repoScores and searchSeen');
+      expect(text).toMatch(/retried after 10 minutes, or right away after config, setup, init, or state-unlink/);
+      expect(mockEnsureGistPersistence).toHaveBeenCalledTimes(1);
+
+      // A repair tool still runs, with size guidance instead of token-scope guidance.
+      const commands = await import('@oss-autopilot/core/commands');
+      vi.mocked(commands.runConfig as (args?: unknown) => Promise<unknown>).mockResolvedValueOnce({ ok: true });
+      const repair = await client.callTool({ name: 'config', arguments: {} });
+      expect(repair.isError).toBeFalsy();
+      const payload = JSON.parse((repair.content as Array<{ text: string }>)[0].text);
+      expect(payload.gistInitWarning).toContain('trim repoScores and searchSeen');
+      expect(payload.gistInitWarning).not.toMatch(/gist scope/);
+
+      // ...and resets the memo.
+      await client.callTool({ name: 'status', arguments: {} });
+      expect(mockEnsureGistPersistence).toHaveBeenCalledTimes(2);
+    });
+
+    it('a memoized GistFileSizeError expires after 10 minutes', async () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(1_000_000);
+      try {
+        mockEnsureGistPersistence.mockRejectedValueOnce(new MockGistFileSizeError('Gist file state.json is too large'));
+        await client.callTool({ name: 'status', arguments: {} });
+
+        vi.setSystemTime(1_000_000 + 10 * 60_000 - 1);
+        const halted = await client.callTool({ name: 'status', arguments: {} });
+        expect(halted.isError).toBe(true);
+        expect(mockEnsureGistPersistence).toHaveBeenCalledTimes(1);
+
+        // Trimmed elsewhere in the meantime: the next attempt after the TTL succeeds.
+        vi.setSystemTime(1_000_000 + 10 * 60_000);
+        const retried = await client.callTool({ name: 'status', arguments: {} });
+        expect(retried.isError).toBeFalsy();
+        expect(mockEnsureGistPersistence).toHaveBeenCalledTimes(2);
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it('a repair tool still fails hard on a NON-configuration init error', async () => {

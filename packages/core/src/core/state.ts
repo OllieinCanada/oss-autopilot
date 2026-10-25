@@ -32,7 +32,14 @@ import {
 import * as repoScoring from './repo-score-manager.js';
 import type { Stats } from './repo-score-manager.js';
 import { debug, warn } from './logger.js';
-import { errorMessage, ConfigurationError, ConcurrencyError, isTransientNetworkError } from './errors.js';
+import {
+  errorMessage,
+  ConfigurationError,
+  ConcurrencyError,
+  isTransientNetworkError,
+  GistFileSizeError,
+  GIST_FILE_SIZE_REMEDY,
+} from './errors.js';
 import { GistStateStore, type OctokitLike } from './gist-state-store.js';
 import * as guidelinesStoreModule from './guidelines-store.js';
 
@@ -388,7 +395,15 @@ export class StateManager {
   async checkpoint(): Promise<boolean> {
     if (!this.gistStore) return true; // not in Gist mode
     this.gistStore.setState(JSON.stringify(this.state, null, 2));
-    const pushed = await this.gistStore.push();
+    let isPushed: boolean;
+    try {
+      isPushed = await this.gistStore.push();
+    } catch (err) {
+      // A file too large to sync fails every checkpoint until state shrinks,
+      // so it is a degradation, not a one-off error.
+      if (err instanceof GistFileSizeError) this.gistDegraded = true;
+      throw err;
+    }
     // A push that fails after its internal retry means the Gist is no longer
     // the authoritative copy of our in-memory state — surface that as degraded
     // so `state --show`, the daily check, and doctor stop reporting healthy
@@ -398,8 +413,8 @@ export class StateManager {
     // unnecessary re-bootstrap. A thrown GistConcurrencyError is deliberately
     // left untouched here — a concurrent remote write is recoverable (refresh +
     // retry), not a degradation of the Gist itself.
-    this.gistDegraded = !pushed;
-    return pushed;
+    this.gistDegraded = !isPushed;
+    return isPushed;
   }
 
   /** Whether this StateManager is backed by a Gist. */
@@ -1411,12 +1426,13 @@ export async function bootstrapGistBestEffort(fetchToken: () => Promise<string |
     else if (status === 'state-unreadable') cause = 'state-unreadable';
     else if (status === 'degraded') cause = 'init-fallback';
   } catch (err) {
-    cause = {
-      reason:
-        err instanceof ConfigurationError
-          ? `Gist initialization failed (${errorMessage(err)}) — fix the Gist setup (check the token's gist scope, or run state-show / setup) before relying on sync`
-          : `Gist initialization failed: ${errorMessage(err)}`,
-    };
+    let reason = `Gist initialization failed: ${errorMessage(err)}`;
+    if (err instanceof GistFileSizeError) {
+      reason = `Gist initialization failed (${errorMessage(err)}). To fix it, ${GIST_FILE_SIZE_REMEDY}.`;
+    } else if (err instanceof ConfigurationError) {
+      reason = `Gist initialization failed (${errorMessage(err)}) — fix the Gist setup (check the token's gist scope, or run state-show / setup) before relying on sync`;
+    }
+    cause = { reason };
   }
   if (cause === null) return null;
   return renderGistWarning(cause);
