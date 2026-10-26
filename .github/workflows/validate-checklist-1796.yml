@@ -1,0 +1,27 @@
+name: Checklist 1796 fixed validation
+on:
+  push:
+    branches: ['validation/checklist-1796-fixed']
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec prettier --write packages/core/src/core/checklist-analysis.ts packages/core/src/core/checklist-analysis.test.ts
+      - name: Export formatted source
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const paths = ['packages/core/src/core/checklist-analysis.ts', 'packages/core/src/core/checklist-analysis.test.ts'];
+          console.log('FORMATTED_FILES_1796 ' + JSON.stringify(Object.fromEntries(paths.map(path => [path, readFileSync(path).toString('base64')]))));
+          NODE
+      - run: pnpm --filter @oss-autopilot/core exec vitest run src/core/checklist-analysis.test.ts
+      - run: git diff --check
